@@ -3,9 +3,9 @@ package http
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/0sokrat0/BookAPI/internal/config"
-
 	authorsrepo "github.com/0sokrat0/BookAPI/internal/infrastructure/authorsRepo"
 	"github.com/0sokrat0/BookAPI/internal/infrastructure/booksRepo"
 	readersrepo "github.com/0sokrat0/BookAPI/internal/infrastructure/readersRepo"
@@ -18,6 +18,7 @@ import (
 	"github.com/0sokrat0/BookAPI/pkg/db/postgres"
 	"github.com/0sokrat0/BookAPI/pkg/logger"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 )
 
 type Server struct {
@@ -45,8 +46,20 @@ func NewServer(ctx context.Context, cfg *config.Config, pool *postgres.Postgres,
 		return c.Next()
 	})
 
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "*", // или задайте нужные источники
+		AllowHeaders: "Origin, Content-Type, Accept",
+	}))
+	app.Use(func(c *fiber.Ctx) error {
+		start := time.Now()
+		err := c.Next()
+		duration := time.Since(start)
+		lg := logger.FromContext(c.UserContext())
+		lg.Infof("Method: %s, URL: %s, Duration: %v", c.Method(), c.OriginalURL(), duration)
+		return err
+	})
+
 	bookRepos := booksRepo.NewBookRepo(pool.DB)
-	// Передаём idCounter в конструктор BookService
 	bookService := books.NewBookService(bookRepos, idCounter)
 
 	authorRepos := authorsrepo.NewAuthorRepo(pool.DB)

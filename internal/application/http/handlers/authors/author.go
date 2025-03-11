@@ -5,6 +5,7 @@ import (
 
 	"github.com/0sokrat0/BookAPI/internal/application/commands"
 	"github.com/0sokrat0/BookAPI/internal/service/authors"
+	"github.com/0sokrat0/BookAPI/pkg/response"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -48,20 +49,27 @@ func NewHandler(service authors.AuthorService) *Handler {
 func (h *Handler) CreateAuthorHandler(c *fiber.Ctx) error {
 	var req CreateAuthorRequest
 	if err := c.BodyParser(&req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request: " + err.Error()})
+		return c.Status(fiber.StatusBadRequest).JSON(response.ErrorResponse{
+			Code:    fiber.StatusBadRequest,
+			Message: "Invalid request: " + err.Error(),
+		})
 	}
-
-	// Преобразуем локальный DTO в DTO из пакета commands
 	cmdReq := commands.CreateAuthorRequest{
 		Name:    req.Name,
 		Country: req.Country,
 	}
-
 	author, err := h.authorService.CreateAuthor(c.UserContext(), cmdReq)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(response.ErrorResponse{
+			Code:    fiber.StatusInternalServerError,
+			Message: err.Error(),
+		})
 	}
-	return c.Status(fiber.StatusOK).JSON(author)
+	return c.Status(fiber.StatusOK).JSON(response.BaseResponse{
+		Code:    fiber.StatusOK,
+		Message: "Author created successfully",
+		Data:    author,
+	})
 }
 
 // GetAuthorHandler godoc
@@ -75,16 +83,25 @@ func (h *Handler) CreateAuthorHandler(c *fiber.Ctx) error {
 // @Failure      404  {object}  map[string]string       "Автор не найден"
 // @Router       /author/{id} [get]
 func (h *Handler) GetAuthorHandler(c *fiber.Ctx) error {
-	idParam := c.Params("id")
-	id, err := strconv.Atoi(idParam)
+	id, err := strconv.Atoi(c.Params("id"))
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid author ID"})
+		return c.Status(fiber.StatusBadRequest).JSON(response.ErrorResponse{
+			Code:    fiber.StatusBadRequest,
+			Message: "Invalid author ID",
+		})
 	}
 	author, err := h.authorService.GetAuthor(c.UserContext(), id)
 	if err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Author not found"})
+		return c.Status(fiber.StatusNotFound).JSON(response.ErrorResponse{
+			Code:    fiber.StatusNotFound,
+			Message: "Author not found",
+		})
 	}
-	return c.Status(fiber.StatusOK).JSON(author)
+	return c.Status(fiber.StatusOK).JSON(response.BaseResponse{
+		Code:    fiber.StatusOK,
+		Message: "Author retrieved successfully",
+		Data:    author,
+	})
 }
 
 // UpdateAuthorHandler godoc
@@ -100,27 +117,36 @@ func (h *Handler) GetAuthorHandler(c *fiber.Ctx) error {
 // @Failure      500     {object}  map[string]string       "Ошибка сервера"
 // @Router       /author/{id} [put]
 func (h *Handler) UpdateAuthorHandler(c *fiber.Ctx) error {
-	idParam := c.Params("id")
-	id, err := strconv.Atoi(idParam)
+	id, err := strconv.Atoi(c.Params("id"))
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid author ID"})
+		return c.Status(fiber.StatusBadRequest).JSON(response.ErrorResponse{
+			Code:    fiber.StatusBadRequest,
+			Message: "Invalid author ID",
+		})
 	}
 	var req UpdateAuthorRequest
 	if err := c.BodyParser(&req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request: " + err.Error()})
+		return c.Status(fiber.StatusBadRequest).JSON(response.ErrorResponse{
+			Code:    fiber.StatusBadRequest,
+			Message: "Invalid request: " + err.Error(),
+		})
 	}
-
-	// Преобразуем локальный DTO в DTO из пакета commands
 	cmdReq := commands.UpdateAuthorRequest{
 		Name:    req.Name,
 		Country: req.Country,
 	}
-
 	updatedAuthor, err := h.authorService.UpdateAuthor(c.UserContext(), id, cmdReq)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(response.ErrorResponse{
+			Code:    fiber.StatusInternalServerError,
+			Message: err.Error(),
+		})
 	}
-	return c.Status(fiber.StatusOK).JSON(updatedAuthor)
+	return c.Status(fiber.StatusOK).JSON(response.BaseResponse{
+		Code:    fiber.StatusOK,
+		Message: "Author updated successfully",
+		Data:    updatedAuthor,
+	})
 }
 
 // DeleteAuthorHandler godoc
@@ -134,15 +160,23 @@ func (h *Handler) UpdateAuthorHandler(c *fiber.Ctx) error {
 // @Failure      500  {object}  map[string]string  "Ошибка сервера"
 // @Router       /author/{id} [delete]
 func (h *Handler) DeleteAuthorHandler(c *fiber.Ctx) error {
-	idParam := c.Params("id")
-	id, err := strconv.Atoi(idParam)
+	id, err := strconv.Atoi(c.Params("id"))
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid author ID"})
+		return c.Status(fiber.StatusBadRequest).JSON(response.ErrorResponse{
+			Code:    fiber.StatusBadRequest,
+			Message: "Invalid author ID",
+		})
 	}
 	if err := h.authorService.DeleteAuthor(c.UserContext(), id); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(response.ErrorResponse{
+			Code:    fiber.StatusInternalServerError,
+			Message: err.Error(),
+		})
 	}
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Author deleted successfully"})
+	return c.Status(fiber.StatusOK).JSON(response.BaseResponse{
+		Code:    fiber.StatusOK,
+		Message: "Author deleted successfully",
+	})
 }
 
 // ListAuthorsHandler godoc
@@ -156,7 +190,14 @@ func (h *Handler) DeleteAuthorHandler(c *fiber.Ctx) error {
 func (h *Handler) ListAuthorsHandler(c *fiber.Ctx) error {
 	authorsList, err := h.authorService.ListAuthors(c.UserContext())
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(response.ErrorResponse{
+			Code:    fiber.StatusInternalServerError,
+			Message: err.Error(),
+		})
 	}
-	return c.Status(fiber.StatusOK).JSON(authorsList)
+	return c.Status(fiber.StatusOK).JSON(response.BaseResponse{
+		Code:    fiber.StatusOK,
+		Message: "Authors list retrieved successfully",
+		Data:    authorsList,
+	})
 }

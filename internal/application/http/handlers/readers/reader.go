@@ -5,11 +5,10 @@ import (
 
 	"github.com/0sokrat0/BookAPI/internal/application/commands"
 	"github.com/0sokrat0/BookAPI/internal/service/readers"
+	"github.com/0sokrat0/BookAPI/pkg/response"
 	"github.com/gofiber/fiber/v2"
 )
 
-// CreateReaderRequest содержит данные для создания читателя.
-// swagger:model CreateReaderRequest
 type CreateReaderRequest struct {
 	Name     string `json:"name" example:"Ivan Ivanov"`
 	Phone    string `json:"phone" example:"+79111234567"`
@@ -18,8 +17,6 @@ type CreateReaderRequest struct {
 	Admin    bool   `json:"admin" example:"false"`
 }
 
-// UpdateReaderRequest содержит данные для обновления читателя.
-// swagger:model UpdateReaderRequest
 type UpdateReaderRequest struct {
 	Name     string `json:"name" example:"Ivan Ivanov"`
 	Phone    string `json:"phone" example:"+79111234567"`
@@ -28,12 +25,10 @@ type UpdateReaderRequest struct {
 	Admin    bool   `json:"admin" example:"false"`
 }
 
-// Handler представляет обработчик для операций с читателями.
 type Handler struct {
 	readerService readers.ReaderService
 }
 
-// NewHandler создаёт новый обработчик для читателей.
 func NewHandler(service readers.ReaderService) *Handler {
 	return &Handler{readerService: service}
 }
@@ -45,17 +40,19 @@ func NewHandler(service readers.ReaderService) *Handler {
 // @Accept       json
 // @Produce      json
 // @Param        reader  body      readerhandlers.CreateReaderRequest  true  "Параметры для создания читателя. Пример: {\"name\":\"Ivan Ivanov\", \"phone\":\"+79111234567\", \"email\":\"ivan@example.com\", \"password\":\"password123\", \"admin\":false}"
-// @Success      200     {object}  map[string]interface{}  "Созданный читатель с уникальным ID"
-// @Failure      400     {object}  map[string]string       "Неверный запрос"
-// @Failure      500     {object}  map[string]string       "Ошибка сервера"
+// @Success      200     {object}  response.BaseResponse "Созданный читатель с уникальным ID"
+// @Failure      400     {object}  response.ErrorResponse  "Неверный запрос"
+// @Failure      500     {object}  response.ErrorResponse  "Ошибка сервера"
 // @Router       /reader [post]
 func (h *Handler) CreateReaderHandler(c *fiber.Ctx) error {
 	var req CreateReaderRequest
 	if err := c.BodyParser(&req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request: " + err.Error()})
+		return c.Status(fiber.StatusBadRequest).JSON(response.ErrorResponse{
+			Code:    fiber.StatusBadRequest,
+			Message: "Invalid request: " + err.Error(),
+		})
 	}
 
-	// Преобразуем локальный тип в тип из пакета commands
 	cmdReq := commands.CreateReaderRequest{
 		Name:     req.Name,
 		Phone:    req.Phone,
@@ -63,12 +60,18 @@ func (h *Handler) CreateReaderHandler(c *fiber.Ctx) error {
 		Password: req.Password,
 		Admin:    req.Admin,
 	}
-
 	reader, err := h.readerService.CreateReader(c.UserContext(), cmdReq)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(response.ErrorResponse{
+			Code:    fiber.StatusInternalServerError,
+			Message: err.Error(),
+		})
 	}
-	return c.Status(fiber.StatusOK).JSON(reader)
+	return c.Status(fiber.StatusOK).JSON(response.BaseResponse{
+		Code:    fiber.StatusOK,
+		Message: "Reader created successfully",
+		Data:    reader,
+	})
 }
 
 // GetReaderHandler godoc
@@ -77,21 +80,30 @@ func (h *Handler) CreateReaderHandler(c *fiber.Ctx) error {
 // @Tags         readers
 // @Produce      json
 // @Param        id   path      int  true  "Уникальный ID читателя"
-// @Success      200  {object}  map[string]interface{}  "Данные читателя"
-// @Failure      400  {object}  map[string]string       "Неверный ID"
-// @Failure      404  {object}  map[string]string       "Читатель не найден"
+// @Success      200  {object}  response.BaseResponse "Данные читателя"
+// @Failure      400  {object}  response.ErrorResponse  "Неверный ID"
+// @Failure      404  {object}  response.ErrorResponse  "Читатель не найден"
 // @Router       /reader/{id} [get]
 func (h *Handler) GetReaderHandler(c *fiber.Ctx) error {
-	idParam := c.Params("id")
-	id, err := strconv.Atoi(idParam)
+	id, err := strconv.Atoi(c.Params("id"))
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid reader ID"})
+		return c.Status(fiber.StatusBadRequest).JSON(response.ErrorResponse{
+			Code:    fiber.StatusBadRequest,
+			Message: "Invalid reader ID",
+		})
 	}
 	reader, err := h.readerService.GetReader(c.UserContext(), id)
 	if err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Reader not found"})
+		return c.Status(fiber.StatusNotFound).JSON(response.ErrorResponse{
+			Code:    fiber.StatusNotFound,
+			Message: "Reader not found",
+		})
 	}
-	return c.Status(fiber.StatusOK).JSON(reader)
+	return c.Status(fiber.StatusOK).JSON(response.BaseResponse{
+		Code:    fiber.StatusOK,
+		Message: "Reader retrieved successfully",
+		Data:    reader,
+	})
 }
 
 // UpdateReaderHandler godoc
@@ -102,22 +114,25 @@ func (h *Handler) GetReaderHandler(c *fiber.Ctx) error {
 // @Produce      json
 // @Param        id      path      int  true  "Уникальный ID читателя"
 // @Param        reader  body      readerhandlers.UpdateReaderRequest  true  "Новые данные читателя. Пример: {\"name\":\"Ivan Ivanov\", \"phone\":\"+79111234567\", \"email\":\"ivan@example.com\", \"password\":\"newpassword\", \"admin\":false}"
-// @Success      200     {object}  map[string]interface{}  "Обновлённые данные читателя"
-// @Failure      400     {object}  map[string]string       "Неверный запрос"
-// @Failure      500     {object}  map[string]string       "Ошибка сервера"
+// @Success      200     {object}  response.BaseResponse "Обновлённые данные читателя"
+// @Failure      400     {object}  response.ErrorResponse  "Неверный запрос"
+// @Failure      500     {object}  response.ErrorResponse  "Ошибка сервера"
 // @Router       /reader/{id} [put]
 func (h *Handler) UpdateReaderHandler(c *fiber.Ctx) error {
-	idParam := c.Params("id")
-	id, err := strconv.Atoi(idParam)
+	id, err := strconv.Atoi(c.Params("id"))
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid reader ID"})
+		return c.Status(fiber.StatusBadRequest).JSON(response.ErrorResponse{
+			Code:    fiber.StatusBadRequest,
+			Message: "Invalid reader ID",
+		})
 	}
 	var req UpdateReaderRequest
 	if err := c.BodyParser(&req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request: " + err.Error()})
+		return c.Status(fiber.StatusBadRequest).JSON(response.ErrorResponse{
+			Code:    fiber.StatusBadRequest,
+			Message: "Invalid request: " + err.Error(),
+		})
 	}
-
-	// Преобразуем локальный тип в тип из пакета commands
 	cmdReq := commands.UpdateReaderRequest{
 		Name:     req.Name,
 		Phone:    req.Phone,
@@ -125,12 +140,18 @@ func (h *Handler) UpdateReaderHandler(c *fiber.Ctx) error {
 		Password: req.Password,
 		Admin:    req.Admin,
 	}
-
 	updatedReader, err := h.readerService.UpdateReader(c.UserContext(), id, cmdReq)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(response.ErrorResponse{
+			Code:    fiber.StatusInternalServerError,
+			Message: err.Error(),
+		})
 	}
-	return c.Status(fiber.StatusOK).JSON(updatedReader)
+	return c.Status(fiber.StatusOK).JSON(response.BaseResponse{
+		Code:    fiber.StatusOK,
+		Message: "Reader updated successfully",
+		Data:    updatedReader,
+	})
 }
 
 // DeleteReaderHandler godoc
@@ -139,20 +160,28 @@ func (h *Handler) UpdateReaderHandler(c *fiber.Ctx) error {
 // @Tags         readers
 // @Produce      json
 // @Param        id   path      int  true  "Уникальный ID читателя"
-// @Success      200  {object}  map[string]string  "Читатель успешно удалён"
-// @Failure      400  {object}  map[string]string  "Неверный ID"
-// @Failure      500  {object}  map[string]string  "Ошибка сервера"
+// @Success      200  {object}  response.BaseResponse "Читатель успешно удалён"
+// @Failure      400  {object}  response.ErrorResponse  "Неверный ID"
+// @Failure      500  {object}  response.ErrorResponse  "Ошибка сервера"
 // @Router       /reader/{id} [delete]
 func (h *Handler) DeleteReaderHandler(c *fiber.Ctx) error {
-	idParam := c.Params("id")
-	id, err := strconv.Atoi(idParam)
+	id, err := strconv.Atoi(c.Params("id"))
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid reader ID"})
+		return c.Status(fiber.StatusBadRequest).JSON(response.ErrorResponse{
+			Code:    fiber.StatusBadRequest,
+			Message: "Invalid reader ID",
+		})
 	}
 	if err := h.readerService.DeleteReader(c.UserContext(), id); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(response.ErrorResponse{
+			Code:    fiber.StatusInternalServerError,
+			Message: err.Error(),
+		})
 	}
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Reader deleted successfully"})
+	return c.Status(fiber.StatusOK).JSON(response.BaseResponse{
+		Code:    fiber.StatusOK,
+		Message: "Reader deleted successfully",
+	})
 }
 
 // ListReadersHandler godoc
@@ -160,13 +189,20 @@ func (h *Handler) DeleteReaderHandler(c *fiber.Ctx) error {
 // @Description  Возвращает список всех читателей.
 // @Tags         readers
 // @Produce      json
-// @Success      200  {array}   map[string]interface{}  "Список читателей"
-// @Failure      500  {object}  map[string]string       "Ошибка сервера"
+// @Success      200  {object}  response.BaseResponse "Список читателей"
+// @Failure      500  {object}  response.ErrorResponse  "Ошибка сервера"
 // @Router       /readers [get]
 func (h *Handler) ListReadersHandler(c *fiber.Ctx) error {
 	readersList, err := h.readerService.ListReaders(c.UserContext())
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(response.ErrorResponse{
+			Code:    fiber.StatusInternalServerError,
+			Message: err.Error(),
+		})
 	}
-	return c.Status(fiber.StatusOK).JSON(readersList)
+	return c.Status(fiber.StatusOK).JSON(response.BaseResponse{
+		Code:    fiber.StatusOK,
+		Message: "Readers list retrieved successfully",
+		Data:    readersList,
+	})
 }
