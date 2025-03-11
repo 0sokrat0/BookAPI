@@ -1,10 +1,11 @@
 package readers
 
 import (
-	domainReaders "api/internal/domain/entity/readers"
-	"api/pkg/logger"
 	"context"
 	"fmt"
+
+	domainReaders "github.com/0sokrat0/BookAPI/internal/domain/entity/readers"
+	"github.com/0sokrat0/BookAPI/pkg/logger"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
@@ -22,9 +23,9 @@ func NewReaderRepo(db *pgxpool.Pool) domainReaders.ReaderRepo {
 func (r *readerRepo) Create(ctx context.Context, reader *domainReaders.Reader) error {
 	lg := logger.FromContext(ctx)
 	query := `
-	    INSERT INTO readers (id, name, phone, email)
-		VALUES ($1, $2, $3, $4)`
-	_, err := r.db.Exec(ctx, query, reader.ID, reader.Name, reader.Phone, reader.Email)
+	    INSERT INTO readers (id, name, phone, email, password, admin)
+		VALUES ($1, $2, $3, $4, $5, $6)`
+	_, err := r.db.Exec(ctx, query, reader.ID, reader.Name, reader.Phone, reader.Email, reader.Password, reader.Admin)
 	if err != nil {
 		lg.Error("failed to create reader", zap.Error(err))
 		return err
@@ -78,7 +79,7 @@ func (r *readerRepo) Update(ctx context.Context, reader *domainReaders.Reader) e
 func (r *readerRepo) List(ctx context.Context) ([]domainReaders.Reader, error) {
 	lg := logger.FromContext(ctx)
 	query := `
-        SELECT id, name, phone, email
+        SELECT id, name, phone, email, password, admin
         FROM readers`
 	rows, err := r.db.Query(ctx, query)
 	if err != nil {
@@ -90,7 +91,7 @@ func (r *readerRepo) List(ctx context.Context) ([]domainReaders.Reader, error) {
 	var readersList []domainReaders.Reader
 	for rows.Next() {
 		var reader domainReaders.Reader
-		err := rows.Scan(&reader.ID, &reader.Name, &reader.Phone, &reader.Email)
+		err := rows.Scan(&reader.ID, &reader.Name, &reader.Phone, &reader.Email, &reader.Password, &reader.Admin)
 		if err != nil {
 			lg.Error("failed to scan reader", zap.Error(err))
 			return nil, fmt.Errorf("failed to scan reader: %w", err)

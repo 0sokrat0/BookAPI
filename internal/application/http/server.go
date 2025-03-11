@@ -1,9 +1,10 @@
 package http
 
 import (
-	"api/internal/config"
 	"context"
 	"fmt"
+
+	"github.com/0sokrat0/BookAPI/internal/config"
 
 	"github.com/gofiber/fiber/v2"
 )

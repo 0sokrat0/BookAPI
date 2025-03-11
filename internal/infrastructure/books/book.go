@@ -4,9 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"api/internal/domain/aggregate/books"
-	"api/pkg/logger"
-
+	"github.com/0sokrat0/BookAPI/internal/domain/aggregate/books"
+	"github.com/0sokrat0/BookAPI/pkg/logger"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
 )

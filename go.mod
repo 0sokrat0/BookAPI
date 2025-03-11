@@ -1,4 +1,4 @@
-module api
+module github.com/0sokrat0/BookAPI
 
 go 1.24.0
 

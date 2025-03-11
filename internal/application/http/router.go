@@ -1,7 +1,7 @@
 package http
 
 import (
-	_ "api/docs"
+	_ "github.com/0sokrat0/BookAPI/docs"
 
 	"github.com/gofiber/contrib/swagger"
 )

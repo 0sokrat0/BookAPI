@@ -1,11 +1,12 @@
 package main
 
 import (
-	"api/internal/application/http"
-	"api/internal/config"
-	"api/pkg/db/postgres"
-	"api/pkg/logger"
 	"context"
+
+	"github.com/0sokrat0/BookAPI/internal/application/http"
+	"github.com/0sokrat0/BookAPI/internal/config"
+	"github.com/0sokrat0/BookAPI/pkg/db/postgres"
+	"github.com/0sokrat0/BookAPI/pkg/logger"
 
 	"os"
 	"os/signal"

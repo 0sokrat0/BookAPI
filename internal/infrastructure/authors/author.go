@@ -1,11 +1,11 @@
 package authors
 
 import (
-	"api/internal/domain/entity/authors"
-	"api/pkg/logger"
 	"context"
 	"fmt"
 
+	"github.com/0sokrat0/BookAPI/internal/domain/entity/authors"
+	"github.com/0sokrat0/BookAPI/pkg/logger"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
 )
@@ -31,7 +31,7 @@ func (r *authorRepo) Create(ctx context.Context, author *authors.Author) error {
 	return nil
 }
 
-func (r *authorRepo) GetById(ctx context.Context, id string) (*authors.Author, error) {
+func (r *authorRepo) GetById(ctx context.Context, id int) (*authors.Author, error) {
 	lg := logger.FromContext(ctx)
 	query := `
 	    SELECT id, name, country
@@ -47,7 +47,7 @@ func (r *authorRepo) GetById(ctx context.Context, id string) (*authors.Author, e
 	return &author, nil
 }
 
-func (r *authorRepo) Delete(ctx context.Context, id string) error {
+func (r *authorRepo) Delete(ctx context.Context, id int) error {
 	lg := logger.FromContext(ctx)
 	query := `
 	    DELETE FROM authors

@@ -1,9 +1,10 @@
 package books
 
 import (
-	"api/internal/application/commands"
-	"api/internal/domain/aggregate/books"
 	"context"
+
+	"github.com/0sokrat0/BookAPI/internal/application/commands"
+	"github.com/0sokrat0/BookAPI/internal/domain/aggregate/books"
 )
 
 type BookService interface {

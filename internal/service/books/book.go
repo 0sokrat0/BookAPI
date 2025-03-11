@@ -1,12 +1,12 @@
 package books
 
 import (
-	"api/internal/application/commands"
-	"api/internal/domain/aggregate/books"
 	"context"
 	"fmt"
 
-	"github.com/google/uuid"
+	"github.com/0sokrat0/BookAPI/internal/application/commands"
+
+	"github.com/0sokrat0/BookAPI/internal/domain/aggregate/books"
 )
 
 type bookService struct {
@@ -21,8 +21,8 @@ func (s *bookService) CreateBook(ctx context.Context, req commands.CreateBookReq
 	if req.Title == "" {
 		return nil, fmt.Errorf("title is required")
 	}
-	bookID := uuid.New().String()
-	newBook, err := books.NewBook(bookID, req.Title, req.Year, req.ISBN, req.Genre, req.AuthorIDs)
+	// id = 0, если база сама генерирует его
+	newBook, err := books.NewBook(0, req.Title, req.Year, req.ISBN, req.Genre, req.AuthorIDs)
 	if err != nil {
 		return nil, err
 	}

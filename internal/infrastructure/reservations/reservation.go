@@ -5,10 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"api/internal/domain/aggregate/books"
-	"api/internal/domain/aggregate/reservations"
-	"api/internal/domain/entity/readers"
-
+	"github.com/0sokrat0/BookAPI/internal/domain/aggregate/books"
+	"github.com/0sokrat0/BookAPI/internal/domain/aggregate/reservations"
+	"github.com/0sokrat0/BookAPI/internal/domain/entity/readers"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -20,7 +19,6 @@ func NewReservationRepo(db *pgxpool.Pool) reservations.ReservationRepo {
 	return &reservationRepo{db: db}
 }
 
-// Create сохраняет новое бронирование в базу данных.
 func (r *reservationRepo) Create(ctx context.Context, id int, book books.Book, reader readers.Reader, startDate, endDate time.Time) (*reservations.Reservation, error) {
 	// Создаем объект бронирования через доменную фабрику.
 	res, err := reservations.NewReservation(id, book, reader, startDate, endDate)

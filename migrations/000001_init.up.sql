@@ -19,7 +19,9 @@ CREATE TABLE readers (
     id SERIAL PRIMARY KEY,
     name VARCHAR NOT NULL,
     phone VARCHAR,
-    email VARCHAR
+    email VARCHAR,
+    password VARCHAR,
+    admin BOOLEAN
 );
 
 -- Создание таблицы book_authors (связующая таблица между books и authors)

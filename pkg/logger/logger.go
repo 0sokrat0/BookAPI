@@ -1,11 +1,11 @@
 package logger
 
 import (
-	"api/internal/config"
 	"context"
 	"log"
 	"sync"
 
+	"github.com/0sokrat0/BookAPI/internal/config"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
