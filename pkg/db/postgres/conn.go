@@ -15,17 +15,18 @@ import (
 	"go.uber.org/zap"
 )
 
-type postgres struct {
-	db *pgxpool.Pool
+// Переименовали тип в Postgres, чтобы он был экспортирован.
+type Postgres struct {
+	// Экспортируем поле, чтобы можно было получить доступ к *pgxpool.Pool.
+	DB *pgxpool.Pool
 }
 
 var (
-	pgInstance *postgres
+	pgInstance *Postgres
 	pgOnce     sync.Once
 )
 
-func NewPG(ctx context.Context, cfg *config.Config) (*postgres, error) {
-
+func NewPG(ctx context.Context, cfg *config.Config) (*Postgres, error) {
 	lg := logger.FromContext(ctx)
 	if lg == nil {
 		return nil, errors.New("logger not found in context")
@@ -51,7 +52,7 @@ func NewPG(ctx context.Context, cfg *config.Config) (*postgres, error) {
 			return
 		}
 
-		pgInstance = &postgres{db: db}
+		pgInstance = &Postgres{DB: db}
 	})
 
 	if err != nil {
@@ -75,7 +76,6 @@ func NewPG(ctx context.Context, cfg *config.Config) (*postgres, error) {
 	}
 
 	err = m.Up()
-
 	if err != nil && !errors.Is(err, migrate.ErrNoChange) {
 		if err.Error() == "Dirty database version 1. Fix and force version." {
 			lg.Warn("Database is dirty, forcing version 1...")
@@ -96,14 +96,13 @@ func NewPG(ctx context.Context, cfg *config.Config) (*postgres, error) {
 	}
 
 	lg.Info("Pools created successfully")
-
 	return pgInstance, nil
 }
 
-func (pg *postgres) Ping(ctx context.Context) error {
-	return pg.db.Ping(ctx)
+func (pg *Postgres) Ping(ctx context.Context) error {
+	return pg.DB.Ping(ctx)
 }
 
-func (pg *postgres) Close() {
-	pg.db.Close()
+func (pg *Postgres) Close() {
+	pg.DB.Close()
 }

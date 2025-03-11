@@ -64,7 +64,7 @@ func (l *Logger) Sync() {
 func FromContext(ctx context.Context) *Logger {
 	l, ok := ctx.Value(loggerCtxKey).(*Logger)
 	if !ok || l == nil {
-		log.Fatal("Логгер не найден в контексте")
+		log.Fatal("Логгер не найден в контексте. Проверьте, что вы передаёте контекст, содержащий логгер")
 	}
 	return l
 }

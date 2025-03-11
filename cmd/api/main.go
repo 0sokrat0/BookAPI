@@ -5,6 +5,7 @@ import (
 
 	"github.com/0sokrat0/BookAPI/internal/application/http"
 	"github.com/0sokrat0/BookAPI/internal/config"
+	genid "github.com/0sokrat0/BookAPI/pkg/GenID"
 	"github.com/0sokrat0/BookAPI/pkg/db/postgres"
 	"github.com/0sokrat0/BookAPI/pkg/logger"
 
@@ -13,6 +14,8 @@ import (
 	"syscall"
 	"time"
 )
+
+var idCounter = genid.NewCounter(0) // или укажите начальное значение, если необходимо
 
 // @title Book API
 // @version 1.0
@@ -37,7 +40,7 @@ func main() {
 	}
 	defer pool.Close()
 
-	server := http.NewServer(ctx, cfg)
+	server := http.NewServer(ctx, cfg, pool, idCounter)
 
 	go func() {
 		if err := server.Start(); err != nil {
@@ -49,12 +52,12 @@ func main() {
 }
 
 func gracefulShutdown(ctx context.Context, server *http.Server, lg *logger.Logger) {
-
 	<-ctx.Done()
 
 	lg.Info("Сигнал завершения получен, начинается graceful shutdown...")
 
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	// Используем ctx, который содержит логгер, вместо context.Background()
+	shutdownCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	if err := server.Shutdown(shutdownCtx); err != nil {

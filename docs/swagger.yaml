@@ -1,8 +1,772 @@
 basePath: /
+definitions:
+  internal_application_http_handlers_authors.CreateAuthorRequest:
+    properties:
+      country:
+        example: Russia
+        type: string
+      name:
+        example: Leo Tolstoy
+        type: string
+    type: object
+  internal_application_http_handlers_authors.UpdateAuthorRequest:
+    properties:
+      country:
+        example: Russia
+        type: string
+      name:
+        example: Anton Chekhov
+        type: string
+    type: object
+  internal_application_http_handlers_bookshandlers.CreateBookRequest:
+    properties:
+      author_ids:
+        description: Пример для массива убран, чтобы избежать ошибок преобразования
+        items:
+          type: integer
+        type: array
+      genre:
+        example: Programming
+        type: string
+      isbn:
+        example: "1234567890"
+        type: string
+      title:
+        example: Go Programming
+        type: string
+      year:
+        example: 2025
+        type: integer
+    type: object
+  internal_application_http_handlers_bookshandlers.UpdateBookRequest:
+    properties:
+      author_ids:
+        items:
+          type: integer
+        type: array
+      genre:
+        example: Programming
+        type: string
+      isbn:
+        example: "0987654321"
+        type: string
+      title:
+        example: Advanced Go
+        type: string
+      year:
+        example: 2025
+        type: integer
+    type: object
+  internal_application_http_handlers_readers.CreateReaderRequest:
+    properties:
+      admin:
+        example: false
+        type: boolean
+      email:
+        example: ivan@example.com
+        type: string
+      name:
+        example: Ivan Ivanov
+        type: string
+      password:
+        example: password123
+        type: string
+      phone:
+        example: "+79111234567"
+        type: string
+    type: object
+  internal_application_http_handlers_readers.UpdateReaderRequest:
+    properties:
+      admin:
+        example: false
+        type: boolean
+      email:
+        example: ivan@example.com
+        type: string
+      name:
+        example: Ivan Ivanov
+        type: string
+      password:
+        example: newpassword
+        type: string
+      phone:
+        example: "+79111234567"
+        type: string
+    type: object
+  internal_application_http_handlers_reservations.CreateReservationRequestDTO:
+    properties:
+      book_id:
+        description: Идентификатор книги
+        type: integer
+      end_date:
+        description: Окончание бронирования
+        type: string
+      id:
+        description: Если ID генерируется базой, можно опустить
+        type: integer
+      reader_id:
+        description: Идентификатор читателя
+        type: integer
+      start_date:
+        description: Начало бронирования
+        type: string
+    type: object
+  internal_application_http_handlers_reservations.UpdateReservationRequestDTO:
+    properties:
+      book_id:
+        type: integer
+      end_date:
+        type: string
+      id:
+        type: integer
+      reader_id:
+        type: integer
+      start_date:
+        type: string
+    type: object
 host: localhost:8080
 info:
   contact: {}
-  title: GoCRM API
+  title: Book API
   version: "1.0"
-paths: {}
+paths:
+  /author:
+    post:
+      consumes:
+      - application/json
+      description: Создаёт нового автора с указанными данными. Принимает JSON-представление
+        автора и возвращает созданную запись.
+      parameters:
+      - description: 'Параметры для создания автора. Пример: {\'
+        in: body
+        name: author
+        required: true
+        schema:
+          $ref: '#/definitions/internal_application_http_handlers_authors.CreateAuthorRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Новый автор с уникальным ID
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Неверный запрос
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a new author
+      tags:
+      - authors
+  /author/{id}:
+    delete:
+      description: Удаляет автора по его уникальному идентификатору.
+      parameters:
+      - description: Уникальный ID автора
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Автор успешно удалён
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Неверный ID
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete an author
+      tags:
+      - authors
+    get:
+      description: Возвращает данные автора по его уникальному идентификатору.
+      parameters:
+      - description: Уникальный ID автора
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Информация об авторе
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Неверный ID
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Автор не найден
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get an author by ID
+      tags:
+      - authors
+    put:
+      consumes:
+      - application/json
+      description: Обновляет данные существующего автора по его уникальному идентификатору.
+      parameters:
+      - description: Уникальный ID автора
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 'Новые данные автора. Пример: {\'
+        in: body
+        name: author
+        required: true
+        schema:
+          $ref: '#/definitions/internal_application_http_handlers_authors.UpdateAuthorRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Обновлённые данные автора
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Неверный запрос или ID
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update an author
+      tags:
+      - authors
+  /authors:
+    get:
+      description: Возвращает список всех авторов, зарегистрированных в системе.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Массив объектов авторов
+          schema:
+            items:
+              additionalProperties: true
+              type: object
+            type: array
+        "500":
+          description: Ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List all authors
+      tags:
+      - authors
+  /book:
+    post:
+      consumes:
+      - application/json
+      description: Создаёт новую книгу в системе. Принимает данные книги в формате
+        JSON и возвращает созданную запись.
+      parameters:
+      - description: 'Параметры для создания книги. Пример: {\'
+        in: body
+        name: book
+        required: true
+        schema:
+          $ref: '#/definitions/internal_application_http_handlers_bookshandlers.CreateBookRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Созданная книга с её уникальным ID
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Неверный формат запроса или отсутствуют обязательные поля
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a new book
+      tags:
+      - books
+  /book/{id}:
+    delete:
+      description: Удаляет книгу из системы по её уникальному идентификатору.
+      parameters:
+      - description: Уникальный ID книги
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Сообщение об успешном удалении
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Неверный ID
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete a book
+      tags:
+      - books
+    get:
+      description: Возвращает данные книги по её уникальному идентификатору.
+      parameters:
+      - description: Уникальный ID книги
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Данные книги
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Неверный ID
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Книга не найдена
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Retrieve a book by ID
+      tags:
+      - books
+    put:
+      consumes:
+      - application/json
+      description: Обновляет данные книги по её уникальному идентификатору. Принимает
+        новые данные книги в формате JSON.
+      parameters:
+      - description: Уникальный ID книги
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 'Данные для обновления книги. Пример: {\'
+        in: body
+        name: book
+        required: true
+        schema:
+          $ref: '#/definitions/internal_application_http_handlers_bookshandlers.UpdateBookRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Обновлённые данные книги
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Неверный запрос или ID
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update a book
+      tags:
+      - books
+  /books:
+    get:
+      description: Возвращает список всех книг, хранящихся в системе.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Массив книг
+          schema:
+            items:
+              additionalProperties: true
+              type: object
+            type: array
+        "500":
+          description: Ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List all books
+      tags:
+      - books
+  /reader:
+    post:
+      consumes:
+      - application/json
+      description: Создаёт нового читателя с предоставленными данными.
+      parameters:
+      - description: 'Параметры для создания читателя. Пример: {\'
+        in: body
+        name: reader
+        required: true
+        schema:
+          $ref: '#/definitions/internal_application_http_handlers_readers.CreateReaderRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Созданный читатель с уникальным ID
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Неверный запрос
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a new reader
+      tags:
+      - readers
+  /reader/{id}:
+    delete:
+      description: Удаляет читателя по его уникальному идентификатору.
+      parameters:
+      - description: Уникальный ID читателя
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Читатель успешно удалён
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Неверный ID
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete a reader
+      tags:
+      - readers
+    get:
+      description: Возвращает данные читателя по его уникальному идентификатору.
+      parameters:
+      - description: Уникальный ID читателя
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Данные читателя
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Неверный ID
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Читатель не найден
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get a reader by ID
+      tags:
+      - readers
+    put:
+      consumes:
+      - application/json
+      description: Обновляет данные существующего читателя.
+      parameters:
+      - description: Уникальный ID читателя
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 'Новые данные читателя. Пример: {\'
+        in: body
+        name: reader
+        required: true
+        schema:
+          $ref: '#/definitions/internal_application_http_handlers_readers.UpdateReaderRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Обновлённые данные читателя
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Неверный запрос
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update a reader
+      tags:
+      - readers
+  /readers:
+    get:
+      description: Возвращает список всех читателей.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список читателей
+          schema:
+            items:
+              additionalProperties: true
+              type: object
+            type: array
+        "500":
+          description: Ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List all readers
+      tags:
+      - readers
+  /reservation:
+    post:
+      consumes:
+      - application/json
+      description: Создаёт новое бронирование в системе.
+      parameters:
+      - description: Reservation creation request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_application_http_handlers_reservations.CreateReservationRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Invalid request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a new reservation
+      tags:
+      - reservations
+    put:
+      consumes:
+      - application/json
+      description: Обновляет данные существующего бронирования.
+      parameters:
+      - description: Reservation update request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_application_http_handlers_reservations.UpdateReservationRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated successfully
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Invalid request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update reservation
+      tags:
+      - reservations
+  /reservation/{id}:
+    delete:
+      description: Удаляет бронирование по его идентификатору.
+      parameters:
+      - description: Reservation ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Deleted successfully
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Invalid ID
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete reservation
+      tags:
+      - reservations
+    get:
+      description: Возвращает бронирование по его уникальному идентификатору.
+      parameters:
+      - description: Reservation ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Invalid reservation ID
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get reservation by ID
+      tags:
+      - reservations
+  /reservations:
+    get:
+      description: Возвращает список бронирований в указанном диапазоне дат.
+      parameters:
+      - description: Start date (YYYY-MM-DD)
+        in: query
+        name: startDate
+        required: true
+        type: string
+      - description: End date (YYYY-MM-DD)
+        in: query
+        name: endDate
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Invalid request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List reservations
+      tags:
+      - reservations
 swagger: "2.0"

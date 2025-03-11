@@ -9,4 +9,8 @@ import (
 
 type BookService interface {
 	CreateBook(ctx context.Context, req commands.CreateBookRequest) (*books.Book, error)
+	GetBook(ctx context.Context, id int) (*books.Book, error)
+	UpdateBook(ctx context.Context, id int, req commands.UpdateBookRequest) (*books.Book, error)
+	DeleteBook(ctx context.Context, id int) error
+	ListBooks(ctx context.Context) ([]books.Book, error)
 }

@@ -1,4 +1,4 @@
-package authors
+package authorsrepo
 
 import (
 	"context"

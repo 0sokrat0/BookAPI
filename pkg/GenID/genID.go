@@ -6,8 +6,8 @@ type IDcounter struct {
 	id int64
 }
 
-func NewCounter() *IDcounter {
-	return &IDcounter{}
+func NewCounter(initial int64) *IDcounter {
+	return &IDcounter{id: initial}
 }
 
 func (i *IDcounter) GenerateID() int {
