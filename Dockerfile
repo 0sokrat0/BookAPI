@@ -9,12 +9,10 @@ COPY . .
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o server ./cmd/api/main.go
 
-# Финальный образ
 FROM alpine:latest
 RUN apk --no-cache add ca-certificates
 WORKDIR /root/
 
-# Копируем бинарник, директорию миграций, .env файл и swagger.json
 COPY --from=builder /app/server .
 COPY --from=builder /app/migrations /root/migrations
 COPY --from=builder /app/.env .
