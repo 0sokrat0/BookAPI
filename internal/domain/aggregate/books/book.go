@@ -20,6 +20,7 @@ type BookRepo interface {
 	Update(ctx context.Context, book *Book) error
 	Delete(ctx context.Context, id int) error
 	List(ctx context.Context) ([]Book, error)
+	ListBooksByAuthor(ctx context.Context, authorID int) ([]Book, error)
 }
 
 func NewBook(id int, title string, year int, isbn string, genre string, authorIDs []int) (*Book, error) {

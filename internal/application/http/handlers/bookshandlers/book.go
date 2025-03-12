@@ -177,13 +177,33 @@ func (h *Handler) DeleteBookHandler(c *fiber.Ctx) error {
 
 // ListBooksHandler godoc
 // @Summary      List all books
-// @Description  Возвращает список всех книг, хранящихся в системе.
+// @Description  Возвращает список всех книг, хранящихся в системе. Если указан параметр "author", возвращаются книги только этого автора. Дополнительно можно задать параметры сортировки: "sort" (поле сортировки) и "order" (asc или desc).
 // @Tags         books
 // @Produce      json
-// @Success      200  {object}  response.BaseResponse "Массив книг"
-// @Failure      500  {object}  response.ErrorResponse "Ошибка сервера"
+// @Param        author  query     int     false  "ID автора для фильтрации (например, 5)"
+// @Param        sort    query     string  false  "Поле для сортировки (например, 'title', 'year')"
+// @Param        order   query     string  false  "Порядок сортировки: 'asc' или 'desc' (по умолчанию: asc)"
+// @Success      200     {object}  response.BaseResponse "Массив книг"
+// @Failure      500     {object}  response.ErrorResponse  "Ошибка сервера"
 // @Router       /books [get]
 func (h *Handler) ListBooksHandler(c *fiber.Ctx) error {
+	authorParam := c.Query("author")
+	if authorParam != "" {
+		authorID, err := strconv.Atoi(authorParam)
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid author parameter"})
+		}
+		booksList, err := h.bookService.ListBooksByAuthor(c.UserContext(), authorID)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		}
+		return c.Status(fiber.StatusOK).JSON(response.BaseResponse{
+			Code:    fiber.StatusOK,
+			Message: "Books list retrieved successfully",
+			Data:    booksList,
+		})
+	}
+
 	booksList, err := h.bookService.ListBooks(c.UserContext())
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(response.ErrorResponse{

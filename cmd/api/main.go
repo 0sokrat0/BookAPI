@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-var idCounter = genid.NewCounter(0) // или укажите начальное значение, если необходимо
+var idCounter = genid.NewCounter(0)
 
 // @title Book API
 // @version 1.0

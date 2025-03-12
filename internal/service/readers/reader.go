@@ -12,9 +12,11 @@ import (
 type ReaderService interface {
 	CreateReader(ctx context.Context, req commands.CreateReaderRequest) (*domainReaders.Reader, error)
 	GetReader(ctx context.Context, id int) (*domainReaders.Reader, error)
+	GetReaderByEmail(ctx context.Context, email string) (*domainReaders.Reader, error)
 	UpdateReader(ctx context.Context, id int, req commands.UpdateReaderRequest) (*domainReaders.Reader, error)
 	DeleteReader(ctx context.Context, id int) error
 	ListReaders(ctx context.Context) ([]domainReaders.Reader, error)
+	Authenticate(ctx context.Context, email, password string) (*domainReaders.Reader, error)
 }
 
 type readerService struct {
@@ -48,6 +50,10 @@ func (s *readerService) GetReader(ctx context.Context, id int) (*domainReaders.R
 	return s.readerRepo.GetById(ctx, id)
 }
 
+func (s *readerService) GetReaderByEmail(ctx context.Context, email string) (*domainReaders.Reader, error) {
+	return s.readerRepo.GetReaderByEmail(ctx, email)
+}
+
 func (s *readerService) UpdateReader(ctx context.Context, id int, req commands.UpdateReaderRequest) (*domainReaders.Reader, error) {
 	existingReader, err := s.readerRepo.GetById(ctx, id)
 	if err != nil {
@@ -72,4 +78,16 @@ func (s *readerService) DeleteReader(ctx context.Context, id int) error {
 
 func (s *readerService) ListReaders(ctx context.Context) ([]domainReaders.Reader, error) {
 	return s.readerRepo.List(ctx)
+}
+
+func (s *readerService) Authenticate(ctx context.Context, email, password string) (*domainReaders.Reader, error) {
+	reader, err := s.readerRepo.GetReaderByEmail(ctx, email)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve reader: %w", err)
+	}
+	// Прямое сравнение паролей (без хэширования)
+	if reader.Password != password {
+		return nil, fmt.Errorf("invalid password")
+	}
+	return reader, nil
 }

@@ -13,4 +13,5 @@ type BookService interface {
 	UpdateBook(ctx context.Context, id int, req commands.UpdateBookRequest) (*books.Book, error)
 	DeleteBook(ctx context.Context, id int) error
 	ListBooks(ctx context.Context) ([]books.Book, error)
+	ListBooksByAuthor(ctx context.Context, authorID int) ([]books.Book, error)
 }

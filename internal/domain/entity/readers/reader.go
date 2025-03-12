@@ -20,6 +20,8 @@ type ReaderRepo interface {
 	Update(ctx context.Context, reader *Reader) error
 	Delete(ctx context.Context, id int) error
 	List(ctx context.Context) ([]Reader, error)
+	GetReaderByEmail(ctx context.Context, email string) (*Reader, error)
+	Authenticate(ctx context.Context, email, password string) (*Reader, error)
 }
 
 func NewReader(id int, name string, phone string, email string, password string, admin bool) (*Reader, error) {
@@ -27,8 +29,12 @@ func NewReader(id int, name string, phone string, email string, password string,
 		return nil, fmt.Errorf("name cannot be empty")
 	}
 	if password == "" {
-
+		return nil, fmt.Errorf("password cannot be empty")
 	}
+	if email == "" {
+		return nil, fmt.Errorf("email cannot be empty")
+	}
+
 	return &Reader{
 		ID:       id,
 		Name:     name,
@@ -37,4 +43,8 @@ func NewReader(id int, name string, phone string, email string, password string,
 		Password: password,
 		Admin:    admin,
 	}, nil
+}
+
+func (r *Reader) CheckPassword(plainPassword string) bool {
+	return r.Password == plainPassword
 }

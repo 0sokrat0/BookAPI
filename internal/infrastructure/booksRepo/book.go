@@ -174,3 +174,30 @@ func (r *bookRepo) List(ctx context.Context) ([]books.Book, error) {
 	}
 	return booksList, nil
 }
+
+func (r *bookRepo) ListBooksByAuthor(ctx context.Context, authorID int) ([]books.Book, error) {
+	query := `
+		SELECT b.id, b.title, b.year, b.isbn, b.genre
+		FROM books b
+		JOIN book_authors ba ON b.id = ba.book_id
+		WHERE ba.author_id = $1`
+	rows, err := r.db.Query(ctx, query, authorID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list books by author: %w", err)
+	}
+	defer rows.Close()
+
+	var booksList []books.Book
+	for rows.Next() {
+		var book books.Book
+		err := rows.Scan(&book.ID, &book.Title, &book.Year, &book.ISBN, &book.Genre)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan book: %w", err)
+		}
+		booksList = append(booksList, book)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("rows error: %w", err)
+	}
+	return booksList, nil
+}

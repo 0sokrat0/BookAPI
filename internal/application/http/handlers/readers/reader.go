@@ -25,6 +25,13 @@ type UpdateReaderRequest struct {
 	Admin    bool   `json:"admin" example:"false"`
 }
 
+// LoginRequest содержит данные для аутентификации пользователя.
+// swagger:model LoginRequest
+type LoginRequest struct {
+	Email    string `json:"email" example:"ivan@example.com"`
+	Password string `json:"password" example:"password123"`
+}
+
 type Handler struct {
 	readerService readers.ReaderService
 }
@@ -204,5 +211,68 @@ func (h *Handler) ListReadersHandler(c *fiber.Ctx) error {
 		Code:    fiber.StatusOK,
 		Message: "Readers list retrieved successfully",
 		Data:    readersList,
+	})
+}
+
+func (h *Handler) GetReadersByEmailHandler(c *fiber.Ctx) error {
+	email := c.Query("email")
+	if email == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(response.ErrorResponse{
+			Code:    fiber.StatusBadRequest,
+			Message: "Email is required",
+		})
+	}
+	reader, err := h.readerService.GetReaderByEmail(c.UserContext(), email)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(response.ErrorResponse{
+			Code:    fiber.StatusInternalServerError,
+			Message: err.Error(),
+		})
+	}
+	return c.Status(fiber.StatusOK).JSON(response.BaseResponse{
+		Code:    fiber.StatusOK,
+		Message: "Readers retrieved successfully",
+		Data:    reader,
+	})
+}
+
+// AuthenticateReaderHandler godoc
+// @Summary      Authenticate reader
+// @Description  Аутентифицирует пользователя по email и паролю. При неверном пароле возвращает ошибку Unauthorized.
+// @Tags         readers
+// @Accept       json
+// @Produce      json
+// @Param        credentials  body      readerhandlers.LoginRequest  true  "Данные для аутентификации. Пример: {\"email\":\"ivan@example.com\", \"password\":\"password123\"}"
+// @Success      200          {object}  response.BaseResponse  "Успешная аутентификация: данные пользователя"
+// @Failure      400          {object}  response.ErrorResponse "Неверный формат запроса"
+// @Failure      401          {object}  response.ErrorResponse "Неверный пароль или пользователь не найден"
+// @Failure      500          {object}  response.ErrorResponse "Ошибка сервера"
+// @Router       /login [post]
+func (h *Handler) AuthenticateReaderHandler(c *fiber.Ctx) error {
+	var req LoginRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(response.ErrorResponse{
+			Code:    fiber.StatusBadRequest,
+			Message: "Invalid request: " + err.Error(),
+		})
+	}
+
+	reader, err := h.readerService.Authenticate(c.UserContext(), req.Email, req.Password)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(response.ErrorResponse{
+			Code:    fiber.StatusUnauthorized,
+			Message: err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(response.BaseResponse{
+		Code:    fiber.StatusOK,
+		Message: "Authentication successful",
+		Data: map[string]interface{}{
+			"id":    reader.ID,
+			"name":  reader.Name,
+			"email": reader.Email,
+			"admin": reader.Admin,
+		},
 	})
 }

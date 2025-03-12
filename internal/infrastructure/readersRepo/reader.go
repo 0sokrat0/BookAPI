@@ -1,4 +1,4 @@
-package readersrepo
+package readersRepo
 
 import (
 	"context"
@@ -15,7 +15,6 @@ type readerRepo struct {
 	db *pgxpool.Pool
 }
 
-// NewReaderRepo создает новый репозиторий для читателей.
 func NewReaderRepo(db *pgxpool.Pool) domainReaders.ReaderRepo {
 	return &readerRepo{db: db}
 }
@@ -36,17 +35,31 @@ func (r *readerRepo) Create(ctx context.Context, reader *domainReaders.Reader) e
 func (r *readerRepo) GetById(ctx context.Context, id int) (*domainReaders.Reader, error) {
 	lg := logger.FromContext(ctx)
 	query := `
-        SELECT id, name, phone, email
+        SELECT id, name, phone, email, password, admin
         FROM readers
         WHERE id = $1`
 	row := r.db.QueryRow(ctx, query, id)
 	var reader domainReaders.Reader
-	err := row.Scan(&reader.ID, &reader.Name, &reader.Phone, &reader.Email)
+	err := row.Scan(&reader.ID, &reader.Name, &reader.Phone, &reader.Email, &reader.Password, &reader.Admin)
 	if err != nil {
 		lg.Error("failed to get reader by id", zap.Error(err))
 		return nil, err
 	}
 	return &reader, nil
+}
+
+func (r *readerRepo) Update(ctx context.Context, reader *domainReaders.Reader) error {
+	lg := logger.FromContext(ctx)
+	query := `
+        UPDATE readers
+        SET name = $2, phone = $3, email = $4, password = $5, admin = $6
+        WHERE id = $1`
+	_, err := r.db.Exec(ctx, query, reader.ID, reader.Name, reader.Phone, reader.Email, reader.Password, reader.Admin)
+	if err != nil {
+		lg.Error("failed to update reader by id", zap.Error(err))
+		return err
+	}
+	return nil
 }
 
 func (r *readerRepo) Delete(ctx context.Context, id int) error {
@@ -57,20 +70,6 @@ func (r *readerRepo) Delete(ctx context.Context, id int) error {
 	_, err := r.db.Exec(ctx, query, id)
 	if err != nil {
 		lg.Error("failed to delete reader by id", zap.Error(err))
-		return err
-	}
-	return nil
-}
-
-func (r *readerRepo) Update(ctx context.Context, reader *domainReaders.Reader) error {
-	lg := logger.FromContext(ctx)
-	query := `
-        UPDATE readers
-        SET name = $2, phone = $3, email = $4
-        WHERE id = $1`
-	_, err := r.db.Exec(ctx, query, reader.ID, reader.Name, reader.Phone, reader.Email)
-	if err != nil {
-		lg.Error("failed to update reader by id", zap.Error(err))
 		return err
 	}
 	return nil
@@ -103,4 +102,31 @@ func (r *readerRepo) List(ctx context.Context) ([]domainReaders.Reader, error) {
 		return nil, fmt.Errorf("rows error: %w", err)
 	}
 	return readersList, nil
+}
+
+func (r *readerRepo) GetReaderByEmail(ctx context.Context, email string) (*domainReaders.Reader, error) {
+	lg := logger.FromContext(ctx)
+	query := `
+	    SELECT id, name, phone, email, password, admin
+	    FROM readers
+	    WHERE email = $1`
+	row := r.db.QueryRow(ctx, query, email)
+	var reader domainReaders.Reader
+	err := row.Scan(&reader.ID, &reader.Name, &reader.Phone, &reader.Email, &reader.Password, &reader.Admin)
+	if err != nil {
+		lg.Error("failed to get reader by email", zap.Error(err))
+		return nil, err
+	}
+	return &reader, nil
+}
+
+func (r *readerRepo) Authenticate(ctx context.Context, email, password string) (*domainReaders.Reader, error) {
+	reader, err := r.GetReaderByEmail(ctx, email)
+	if err != nil {
+		return nil, err
+	}
+	if reader.Password != password {
+		return nil, fmt.Errorf("invalid password")
+	}
+	return reader, nil
 }

@@ -283,26 +283,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Созданная книга с её уникальным ID",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/github_com_0sokrat0_BookAPI_pkg_response.BaseResponse"
                         }
                     },
                     "400": {
                         "description": "Неверный формат запроса или отсутствуют обязательные поля",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Ошибка сервера",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse"
                         }
                     }
                 }
@@ -331,26 +324,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Данные книги",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/github_com_0sokrat0_BookAPI_pkg_response.BaseResponse"
                         }
                     },
                     "400": {
                         "description": "Неверный ID",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Книга не найдена",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse"
                         }
                     }
                 }
@@ -389,26 +375,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Обновлённые данные книги",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/github_com_0sokrat0_BookAPI_pkg_response.BaseResponse"
                         }
                     },
                     "400": {
                         "description": "Неверный запрос или ID",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Ошибка сервера",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse"
                         }
                     }
                 }
@@ -435,28 +414,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Сообщение об успешном удалении",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/github_com_0sokrat0_BookAPI_pkg_response.BaseResponse"
                         }
                     },
                     "400": {
                         "description": "Неверный ID",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Ошибка сервера",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse"
                         }
                     }
                 }
@@ -464,7 +434,7 @@ const docTemplate = `{
         },
         "/books": {
             "get": {
-                "description": "Возвращает список всех книг, хранящихся в системе.",
+                "description": "Возвращает список всех книг, хранящихся в системе. Если указан параметр \"author\", возвращаются книги только этого автора. Дополнительно можно задать параметры сортировки: \"sort\" (поле сортировки) и \"order\" (asc или desc).",
                 "produces": [
                     "application/json"
                 ],
@@ -472,24 +442,89 @@ const docTemplate = `{
                     "books"
                 ],
                 "summary": "List all books",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID автора для фильтрации (например, 5)",
+                        "name": "author",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Поле для сортировки (например, 'title', 'year')",
+                        "name": "sort",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Порядок сортировки: 'asc' или 'desc' (по умолчанию: asc)",
+                        "name": "order",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Массив книг",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "type": "object",
-                                "additionalProperties": true
-                            }
+                            "$ref": "#/definitions/github_com_0sokrat0_BookAPI_pkg_response.BaseResponse"
                         }
                     },
                     "500": {
                         "description": "Ошибка сервера",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/login": {
+            "post": {
+                "description": "Аутентифицирует пользователя по email и паролю. При неверном пароле возвращает ошибку Unauthorized.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "readers"
+                ],
+                "summary": "Authenticate reader",
+                "parameters": [
+                    {
+                        "description": "Данные для аутентификации. Пример: {\\",
+                        "name": "credentials",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_application_http_handlers_readers.LoginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Успешная аутентификация: данные пользователя",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_0sokrat0_BookAPI_pkg_response.BaseResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Неверный формат запроса",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Неверный пароль или пользователь не найден",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse"
                         }
                     }
                 }
@@ -523,26 +558,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Созданный читатель с уникальным ID",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/github_com_0sokrat0_BookAPI_pkg_response.BaseResponse"
                         }
                     },
                     "400": {
                         "description": "Неверный запрос",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Ошибка сервера",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse"
                         }
                     }
                 }
@@ -571,26 +599,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Данные читателя",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/github_com_0sokrat0_BookAPI_pkg_response.BaseResponse"
                         }
                     },
                     "400": {
                         "description": "Неверный ID",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Читатель не найден",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse"
                         }
                     }
                 }
@@ -629,26 +650,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Обновлённые данные читателя",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/github_com_0sokrat0_BookAPI_pkg_response.BaseResponse"
                         }
                     },
                     "400": {
                         "description": "Неверный запрос",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Ошибка сервера",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse"
                         }
                     }
                 }
@@ -675,28 +689,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Читатель успешно удалён",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/github_com_0sokrat0_BookAPI_pkg_response.BaseResponse"
                         }
                     },
                     "400": {
                         "description": "Неверный ID",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Ошибка сервера",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse"
                         }
                     }
                 }
@@ -716,20 +721,13 @@ const docTemplate = `{
                     "200": {
                         "description": "Список читателей",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "type": "object",
-                                "additionalProperties": true
-                            }
+                            "$ref": "#/definitions/github_com_0sokrat0_BookAPI_pkg_response.BaseResponse"
                         }
                     },
                     "500": {
                         "description": "Ошибка сервера",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse"
                         }
                     }
                 }
@@ -761,30 +759,21 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Updated successfully",
+                        "description": "Бронирование обновлено успешно",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/github_com_0sokrat0_BookAPI_pkg_response.BaseResponse"
                         }
                     },
                     "400": {
                         "description": "Invalid request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse"
                         }
                     }
                 }
@@ -813,22 +802,22 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
+                    "200": {
+                        "description": "Бронирование создано успешно",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_0sokrat0_BookAPI_pkg_response.BaseResponse"
+                        }
+                    },
                     "400": {
                         "description": "Invalid request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse"
                         }
                     }
                 }
@@ -854,22 +843,22 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
+                    "200": {
+                        "description": "Данные бронирования",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_0sokrat0_BookAPI_pkg_response.BaseResponse"
+                        }
+                    },
                     "400": {
                         "description": "Invalid reservation ID",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not found",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse"
                         }
                     }
                 }
@@ -894,30 +883,21 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Deleted successfully",
+                        "description": "Бронирование удалено успешно",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/github_com_0sokrat0_BookAPI_pkg_response.BaseResponse"
                         }
                     },
                     "400": {
                         "description": "Invalid ID",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse"
                         }
                     }
                 }
@@ -950,22 +930,22 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
+                    "200": {
+                        "description": "Список бронирований",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_0sokrat0_BookAPI_pkg_response.BaseResponse"
+                        }
+                    },
                     "400": {
                         "description": "Invalid request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse"
                         }
                     }
                 }
@@ -973,6 +953,33 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "github_com_0sokrat0_BookAPI_pkg_response.BaseResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 200
+                },
+                "data": {},
+                "message": {
+                    "type": "string",
+                    "example": "Operation successful"
+                }
+            }
+        },
+        "github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 400
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Bad Request"
+                }
+            }
+        },
         "internal_application_http_handlers_authors.CreateAuthorRequest": {
             "type": "object",
             "properties": {
@@ -1003,7 +1010,6 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "author_ids": {
-                    "description": "Пример для массива убран, чтобы избежать ошибок преобразования",
                     "type": "array",
                     "items": {
                         "type": "integer"
@@ -1076,6 +1082,19 @@ const docTemplate = `{
                 "phone": {
                     "type": "string",
                     "example": "+79111234567"
+                }
+            }
+        },
+        "internal_application_http_handlers_readers.LoginRequest": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "example": "ivan@example.com"
+                },
+                "password": {
+                    "type": "string",
+                    "example": "password123"
                 }
             }
         },

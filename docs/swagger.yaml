@@ -1,5 +1,24 @@
 basePath: /
 definitions:
+  github_com_0sokrat0_BookAPI_pkg_response.BaseResponse:
+    properties:
+      code:
+        example: 200
+        type: integer
+      data: {}
+      message:
+        example: Operation successful
+        type: string
+    type: object
+  github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse:
+    properties:
+      code:
+        example: 400
+        type: integer
+      message:
+        example: Bad Request
+        type: string
+    type: object
   internal_application_http_handlers_authors.CreateAuthorRequest:
     properties:
       country:
@@ -21,7 +40,6 @@ definitions:
   internal_application_http_handlers_bookshandlers.CreateBookRequest:
     properties:
       author_ids:
-        description: Пример для массива убран, чтобы избежать ошибок преобразования
         items:
           type: integer
         type: array
@@ -73,6 +91,15 @@ definitions:
         type: string
       phone:
         example: "+79111234567"
+        type: string
+    type: object
+  internal_application_http_handlers_readers.LoginRequest:
+    properties:
+      email:
+        example: ivan@example.com
+        type: string
+      password:
+        example: password123
         type: string
     type: object
   internal_application_http_handlers_readers.UpdateReaderRequest:
@@ -310,20 +337,15 @@ paths:
         "200":
           description: Созданная книга с её уникальным ID
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/github_com_0sokrat0_BookAPI_pkg_response.BaseResponse'
         "400":
           description: Неверный формат запроса или отсутствуют обязательные поля
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse'
         "500":
           description: Ошибка сервера
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse'
       summary: Create a new book
       tags:
       - books
@@ -342,21 +364,15 @@ paths:
         "200":
           description: Сообщение об успешном удалении
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/github_com_0sokrat0_BookAPI_pkg_response.BaseResponse'
         "400":
           description: Неверный ID
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse'
         "500":
           description: Ошибка сервера
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse'
       summary: Delete a book
       tags:
       - books
@@ -374,20 +390,15 @@ paths:
         "200":
           description: Данные книги
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/github_com_0sokrat0_BookAPI_pkg_response.BaseResponse'
         "400":
           description: Неверный ID
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse'
         "404":
           description: Книга не найдена
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse'
       summary: Retrieve a book by ID
       tags:
       - books
@@ -414,45 +425,85 @@ paths:
         "200":
           description: Обновлённые данные книги
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/github_com_0sokrat0_BookAPI_pkg_response.BaseResponse'
         "400":
           description: Неверный запрос или ID
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse'
         "500":
           description: Ошибка сервера
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse'
       summary: Update a book
       tags:
       - books
   /books:
     get:
-      description: Возвращает список всех книг, хранящихся в системе.
+      description: 'Возвращает список всех книг, хранящихся в системе. Если указан
+        параметр "author", возвращаются книги только этого автора. Дополнительно можно
+        задать параметры сортировки: "sort" (поле сортировки) и "order" (asc или desc).'
+      parameters:
+      - description: ID автора для фильтрации (например, 5)
+        in: query
+        name: author
+        type: integer
+      - description: Поле для сортировки (например, 'title', 'year')
+        in: query
+        name: sort
+        type: string
+      - description: 'Порядок сортировки: ''asc'' или ''desc'' (по умолчанию: asc)'
+        in: query
+        name: order
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: Массив книг
           schema:
-            items:
-              additionalProperties: true
-              type: object
-            type: array
+            $ref: '#/definitions/github_com_0sokrat0_BookAPI_pkg_response.BaseResponse'
         "500":
           description: Ошибка сервера
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse'
       summary: List all books
       tags:
       - books
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Аутентифицирует пользователя по email и паролю. При неверном пароле
+        возвращает ошибку Unauthorized.
+      parameters:
+      - description: 'Данные для аутентификации. Пример: {\'
+        in: body
+        name: credentials
+        required: true
+        schema:
+          $ref: '#/definitions/internal_application_http_handlers_readers.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'Успешная аутентификация: данные пользователя'
+          schema:
+            $ref: '#/definitions/github_com_0sokrat0_BookAPI_pkg_response.BaseResponse'
+        "400":
+          description: Неверный формат запроса
+          schema:
+            $ref: '#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse'
+        "401":
+          description: Неверный пароль или пользователь не найден
+          schema:
+            $ref: '#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse'
+        "500":
+          description: Ошибка сервера
+          schema:
+            $ref: '#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse'
+      summary: Authenticate reader
+      tags:
+      - readers
   /reader:
     post:
       consumes:
@@ -471,20 +522,15 @@ paths:
         "200":
           description: Созданный читатель с уникальным ID
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/github_com_0sokrat0_BookAPI_pkg_response.BaseResponse'
         "400":
           description: Неверный запрос
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse'
         "500":
           description: Ошибка сервера
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse'
       summary: Create a new reader
       tags:
       - readers
@@ -503,21 +549,15 @@ paths:
         "200":
           description: Читатель успешно удалён
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/github_com_0sokrat0_BookAPI_pkg_response.BaseResponse'
         "400":
           description: Неверный ID
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse'
         "500":
           description: Ошибка сервера
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse'
       summary: Delete a reader
       tags:
       - readers
@@ -535,20 +575,15 @@ paths:
         "200":
           description: Данные читателя
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/github_com_0sokrat0_BookAPI_pkg_response.BaseResponse'
         "400":
           description: Неверный ID
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse'
         "404":
           description: Читатель не найден
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse'
       summary: Get a reader by ID
       tags:
       - readers
@@ -574,20 +609,15 @@ paths:
         "200":
           description: Обновлённые данные читателя
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/github_com_0sokrat0_BookAPI_pkg_response.BaseResponse'
         "400":
           description: Неверный запрос
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse'
         "500":
           description: Ошибка сервера
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse'
       summary: Update a reader
       tags:
       - readers
@@ -600,16 +630,11 @@ paths:
         "200":
           description: Список читателей
           schema:
-            items:
-              additionalProperties: true
-              type: object
-            type: array
+            $ref: '#/definitions/github_com_0sokrat0_BookAPI_pkg_response.BaseResponse'
         "500":
           description: Ошибка сервера
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse'
       summary: List all readers
       tags:
       - readers
@@ -628,18 +653,18 @@ paths:
       produces:
       - application/json
       responses:
+        "200":
+          description: Бронирование создано успешно
+          schema:
+            $ref: '#/definitions/github_com_0sokrat0_BookAPI_pkg_response.BaseResponse'
         "400":
           description: Invalid request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse'
       summary: Create a new reservation
       tags:
       - reservations
@@ -658,23 +683,17 @@ paths:
       - application/json
       responses:
         "200":
-          description: Updated successfully
+          description: Бронирование обновлено успешно
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/github_com_0sokrat0_BookAPI_pkg_response.BaseResponse'
         "400":
           description: Invalid request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse'
       summary: Update reservation
       tags:
       - reservations
@@ -691,23 +710,17 @@ paths:
       - application/json
       responses:
         "200":
-          description: Deleted successfully
+          description: Бронирование удалено успешно
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/github_com_0sokrat0_BookAPI_pkg_response.BaseResponse'
         "400":
           description: Invalid ID
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse'
       summary: Delete reservation
       tags:
       - reservations
@@ -722,18 +735,18 @@ paths:
       produces:
       - application/json
       responses:
+        "200":
+          description: Данные бронирования
+          schema:
+            $ref: '#/definitions/github_com_0sokrat0_BookAPI_pkg_response.BaseResponse'
         "400":
           description: Invalid reservation ID
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse'
         "404":
           description: Not found
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse'
       summary: Get reservation by ID
       tags:
       - reservations
@@ -754,18 +767,18 @@ paths:
       produces:
       - application/json
       responses:
+        "200":
+          description: Список бронирований
+          schema:
+            $ref: '#/definitions/github_com_0sokrat0_BookAPI_pkg_response.BaseResponse'
         "400":
           description: Invalid request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/github_com_0sokrat0_BookAPI_pkg_response.ErrorResponse'
       summary: List reservations
       tags:
       - reservations

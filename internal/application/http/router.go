@@ -35,6 +35,7 @@ func (s *Server) registerRouter() {
 	s.App.Put("/reader/:id", handlerReader.UpdateReaderHandler)
 	s.App.Delete("/reader/:id", handlerReader.DeleteReaderHandler)
 	s.App.Get("/readers", handlerReader.ListReadersHandler)
+	s.App.Post("/login", handlerReader.AuthenticateReaderHandler)
 
 	s.App.Post("/author", handlerAuthor.CreateAuthorHandler)
 	s.App.Get("/author/:id", handlerAuthor.GetAuthorHandler)

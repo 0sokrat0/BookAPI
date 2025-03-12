@@ -68,7 +68,7 @@ func NewPG(ctx context.Context, cfg *config.Config) (*Postgres, error) {
 	)
 
 	m, err := migrate.New(
-		"file://migrations",
+		"file:///root/migrations",
 		migrateString)
 	if err != nil {
 		lg.Errorf("unable to create migration", zap.Error(err))

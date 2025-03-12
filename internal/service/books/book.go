@@ -69,3 +69,7 @@ func (s *bookService) DeleteBook(ctx context.Context, id int) error {
 func (s *bookService) ListBooks(ctx context.Context) ([]books.Book, error) {
 	return s.bookRepo.List(ctx)
 }
+
+func (s *bookService) ListBooksByAuthor(ctx context.Context, authorID int) ([]books.Book, error) {
+	return s.bookRepo.ListBooksByAuthor(ctx, authorID)
+}
