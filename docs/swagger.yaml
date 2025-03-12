@@ -151,7 +151,7 @@ definitions:
       start_date:
         type: string
     type: object
-host: localhost:8080
+host: 62.113.37.155:8080
 info:
   contact: {}
   title: Book API

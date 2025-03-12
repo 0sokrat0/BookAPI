@@ -19,7 +19,7 @@ var idCounter = genid.NewCounter(0)
 
 // @title Book API
 // @version 1.0
-// @host localhost:8080
+// @host 62.113.37.155:8080
 // @BasePath /
 func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
